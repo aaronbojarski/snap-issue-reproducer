@@ -45,29 +45,32 @@ impl Client {
         loop {
             tokio::select! {
                 // Receive datagram from socket
-                Ok((len, src)) = socket.recv_from(&mut buf) => {
-                    debug!("received {} bytes on socket from {}", len, src);
-                    if len < 16 {
-                        warn!("invalid packet received from {}: not enough data", src);
-                        continue;
-                    }
-                    // Decode message with same format as sent
-                    if buf[0..16] == b"Ping send_count="[..] {
-                        match String::from_utf8_lossy(&buf[16..len])
-                            .parse::<u64>()
-                        {
-                            Ok(count) => {
-                                info!("received ping with send_count={}", count);
+                result = socket.recv_from(&mut buf) => {
+                    if let Ok((len, src)) = result {
+                        debug!("received {} bytes on socket from {}", len, src);
+                        if len < 16 {
+                            warn!("invalid packet received from {}: not enough data", src);
+                            continue;
+                        }
+                        // Decode message with same format as sent
+                        if buf[0..16] == b"Ping send_count="[..] {
+                            match String::from_utf8_lossy(&buf[16..len])
+                                .parse::<u64>()
+                            {
+                                Ok(count) => {
+                                    info!("received ping with send_count={}", count);
+                                }
+                                Err(e) => {
+                                    warn!("failed to parse send_count from {}, {}", src, e);
+                                }
                             }
-                            Err(e) => {
-                                warn!("failed to parse send_count from {}, {}", src, e);
-                            }
+                        } else {
+                            let received_message = String::from_utf8_lossy(&buf[..len]);
+                            warn!("received unknown message format from {}, {}", src, received_message);
                         }
                     } else {
-                        let received_message = String::from_utf8_lossy(&buf[..len]);
-                        warn!("received unknown message format from {}, {}", src, received_message);
+                        warn!("failed to receive data on socket {:?}", result);
                     }
-
                 }
 
                 // Send ping on every tick
