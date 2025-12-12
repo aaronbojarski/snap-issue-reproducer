@@ -6,8 +6,8 @@ edition = "2024"
 [dependencies]
 anyhow = "1.0.100"
 clap = { version = "4", features = ["derive"] }
-scion-proto = "0.2.0"
-scion-stack = "0.2.0"
+scion-proto = { git = "https://github.com/Anapaya/scion-sdk.git", branch = "main" }
+scion-stack = { git = "https://github.com/Anapaya/scion-sdk.git", branch = "main" }
 tokio = "1.48.0"
 tracing = "0.1.43"
 tracing-subscriber = { version = "0.3.0", default-features = false, features = ["env-filter", "fmt", "ansi", "time", "local-time"] }
